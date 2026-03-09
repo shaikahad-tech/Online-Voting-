@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ election.title }}</h2>
+<p>{{ election.description }}</p>
+
+{% if existing_vote %}
+  <p>You already voted in this election.</p>
+  <a class="btn secondary" href="{{ url_for('results', election_id=election.id) }}">View Results</a>
+{% else %}
+<form method="post" class="form-card">
+  {% for candidate in candidates %}
+    <label class="inline-option">
+      <input type="radio" name="candidate_id" value="{{ candidate.id }}" required>
+      {{ candidate.name }}
+    </label>
+  {% endfor %}
+  <button type="submit">Submit Vote</button>
+</form>
+{% endif %}
+{% endblock %}

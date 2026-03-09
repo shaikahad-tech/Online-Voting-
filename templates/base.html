@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Voting</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+  <header>
+    <h1><a href="{{ url_for('index') }}">Online Voting System</a></h1>
+    <nav>
+      {% if session.get('user_id') %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+        <a href="{{ url_for('index') }}">Home</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Register</a>
+      {% endif %}
+      {% if user and user.is_admin %}
+        <a href="{{ url_for('create_election') }}">Create Election</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <section class="messages">
+      {% for category, message in messages %}
+        <div class="alert {{ category }}">{{ message }}</div>
+      {% endfor %}
+      </section>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
