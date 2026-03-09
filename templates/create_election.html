@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Create Election</h2>
+<form method="post" class="form-card">
+  <label>Election Title <input type="text" name="title" required></label>
+  <label>Description <textarea name="description" rows="4" required></textarea></label>
+  <label>Candidates (one per line)
+    <textarea name="candidates" rows="6" required placeholder="Candidate 1&#10;Candidate 2"></textarea>
+  </label>
+  <button type="submit">Create Election</button>
+</form>
+{% endblock %}

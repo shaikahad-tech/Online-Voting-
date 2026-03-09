@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Results: {{ election.title }}</h2>
+<p>Total Votes: {{ total_votes }}</p>
+<div class="results">
+  {% for result in results_data %}
+    <div class="result-row">
+      <div class="result-head">
+        <strong>{{ result.name }}</strong>
+        <span>{{ result.count }} vote(s) — {{ '%.1f'|format(result.percentage) }}%</span>
+      </div>
+      <div class="bar">
+        <div class="fill" style="width: {{ result.percentage }}%"></div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Available Elections</h2>
+{% if elections %}
+  <div class="grid">
+    {% for election in elections %}
+      <article class="card">
+        <h3>{{ election.title }}</h3>
+        <p>{{ election.description }}</p>
+        {% if session.get('user_id') %}
+          {% if election.id in voted_election_ids %}
+            <a class="btn secondary" href="{{ url_for('results', election_id=election.id) }}">View Results</a>
+          {% else %}
+            <a class="btn" href="{{ url_for('election_detail', election_id=election.id) }}">Vote Now</a>
+          {% endif %}
+        {% else %}
+          <a class="btn" href="{{ url_for('login') }}">Login to Vote</a>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No elections available yet.</p>
+{% endif %}
+{% endblock %}
