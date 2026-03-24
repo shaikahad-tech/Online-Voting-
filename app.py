@@ -214,6 +214,7 @@ def results(election_id: int):
         )
     }
 
+    # Total derived from grouped counts to avoid an extra aggregate query
     total_votes = sum(vote_counts.values())
     results_data = []
     for candidate in candidates:
