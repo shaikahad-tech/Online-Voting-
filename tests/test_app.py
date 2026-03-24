@@ -100,3 +100,24 @@ def test_results_aggregation(client):
     assert b"Pizza" in response.data and b"Sushi" in response.data
     assert b"66.7%" in response.data and b"33.3%" in response.data
     assert response.data.index(b"Pizza") < response.data.index(b"Sushi")
+
+
+def test_results_with_no_votes(client):
+    with app.app_context():
+        election = Election(title="Empty Election", description="No votes yet")
+        db.session.add(election)
+        db.session.flush()
+        election_id = election.id
+
+        db.session.add_all(
+            [
+                Candidate(name="Option A", election_id=election.id),
+                Candidate(name="Option B", election_id=election.id),
+            ]
+        )
+        db.session.commit()
+
+    response = client.get(f"/results/{election_id}")
+    assert response.status_code == 200
+    assert b"Total Votes: 0" in response.data
+    assert b"0.0%" in response.data
