@@ -214,7 +214,7 @@ def results(election_id: int):
         )
     }
 
-    total_votes = db.session.query(func.count(Vote.id)).filter_by(election_id=election_id).scalar()
+    total_votes = sum(vote_counts.values())
     results_data = []
     for candidate in candidates:
         count = vote_counts.get(candidate.id, 0)
