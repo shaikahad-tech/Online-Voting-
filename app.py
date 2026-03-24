@@ -4,6 +4,7 @@ import os
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy import func
 
 
 app = Flask(__name__)
@@ -42,7 +43,11 @@ class Vote(db.Model):
     candidate_id = db.Column(db.Integer, db.ForeignKey("candidate.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    __table_args__ = (db.UniqueConstraint("user_id", "election_id", name="uq_user_election_vote"),)
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "election_id", name="uq_user_election_vote"),
+        db.Index("ix_vote_user_election", "user_id", "election_id"),
+        db.Index("ix_vote_election_candidate", "election_id", "candidate_id"),
+    )
 
 
 def current_user():
@@ -78,7 +83,10 @@ def index():
     user = current_user()
     voted_election_ids = set()
     if user:
-        voted_election_ids = {v.election_id for v in Vote.query.filter_by(user_id=user.id).all()}
+        voted_election_ids = {
+            election_id
+            for (election_id,) in db.session.query(Vote.election_id).filter_by(user_id=user.id).distinct()
+        }
     return render_template("index.html", elections=elections, user=user, voted_election_ids=voted_election_ids)
 
 
@@ -196,10 +204,20 @@ def results(election_id: int):
     election = Election.query.get_or_404(election_id)
     candidates = Candidate.query.filter_by(election_id=election_id).all()
 
+    vote_counts = {
+        candidate_id: count
+        for candidate_id, count in (
+            db.session.query(Vote.candidate_id, func.count(Vote.id))
+            .filter_by(election_id=election_id)
+            .group_by(Vote.candidate_id)
+            .all()
+        )
+    }
+
+    total_votes = sum(vote_counts.values())
     results_data = []
-    total_votes = Vote.query.filter_by(election_id=election_id).count()
     for candidate in candidates:
-        count = Vote.query.filter_by(election_id=election_id, candidate_id=candidate.id).count()
+        count = vote_counts.get(candidate.id, 0)
         percentage = (count / total_votes * 100) if total_votes else 0
         results_data.append({"name": candidate.name, "count": count, "percentage": percentage})
 
