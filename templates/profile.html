@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}NovaVote · Profile{% endblock %}
+{% block content %}
+<section class="section-head"><h1>Your Profile</h1></section>
+<section class="card-grid cols-2">
+    <form method="post" class="card">
+        <label>Name<input name="name" value="{{ user.name }}" /></label>
+        <label>Bio<textarea name="bio" rows="6">{{ user.bio }}</textarea></label>
+        <label>Timezone<input name="timezone" value="{{ user.timezone }}" /></label>
+        <label>Avatar Seed<input name="avatar_seed" value="{{ user.avatar_seed }}" /></label>
+        <button class="btn" type="submit">Save Profile</button>
+    </form>
+    <article class="card">
+        <h3>Recent Voting Activity</h3>
+        <ul class="timeline">
+            {% for title, created_at in my_votes %}
+            <li><span>{{ created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span><strong>{{ title }}</strong></li>
+            {% else %}
+            <li><span>No votes yet.</span></li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+{% endblock %}

@@ -1,18 +1,59 @@
 {% extends 'base.html' %}
+{% block title %}NovaVote · Results · {{ election.title }}{% endblock %}
 {% block content %}
-<h2>Results: {{ election.title }}</h2>
-<p>Total Votes: {{ total_votes }}</p>
-<div class="results">
-  {% for result in results_data %}
-    <div class="result-row">
-      <div class="result-head">
-        <strong>{{ result.name }}</strong>
-        <span>{{ result.count }} vote(s) — {{ '%.1f'|format(result.percentage) }}%</span>
-      </div>
-      <div class="bar">
-        <div class="fill" style="width: {{ result.percentage }}%"></div>
-      </div>
-    </div>
-  {% endfor %}
-</div>
+<section class="section-head">
+    <h1>{{ election.title }} · Results</h1>
+    <a href="{{ url_for('election_detail', slug=election.slug) }}">Back to Election</a>
+</section>
+
+<section class="kpi-grid">
+    <article class="kpi"><strong>{{ state|title }}</strong><span>Status</span></article>
+    <article class="kpi"><strong>{{ turnout.votes }}</strong><span>Votes Cast</span></article>
+    <article class="kpi"><strong>{{ turnout.eligible }}</strong><span>Eligible Voters</span></article>
+    <article class="kpi"><strong>{{ turnout.turnout }}%</strong><span>Turnout</span></article>
+</section>
+
+<section class="card-grid cols-2">
+    <article class="card">
+        <h3>Result Breakdown</h3>
+        <table class="table">
+            <thead>
+                <tr><th>Candidate</th><th>Votes</th><th>%</th></tr>
+            </thead>
+            <tbody>
+                {% for row in result_bundle.rows %}
+                <tr>
+                    <td>{{ row.name }} <span class="muted">{{ row.slogan }}</span></td>
+                    <td>{{ row.count }}</td>
+                    <td>{{ row.percentage }}%</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3">No votes recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if result_bundle.winner %}
+        <div class="winner-box">
+            <h4>Leading Candidate</h4>
+            <p>{{ result_bundle.winner.name }} — {{ result_bundle.winner.count }} vote(s)</p>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="card">
+        <h3>Vote Trend (Cumulative)</h3>
+        <div id="trendChart" class="chart" data-points='{{ trend_points|tojson }}'></div>
+        <h4>Recent Ballot Activity</h4>
+        <ul class="timeline">
+            {% for item in history %}
+            <li>
+                <span>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+                <strong>Vote recorded</strong>
+            </li>
+            {% else %}
+            <li><span>No activity yet.</span></li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
 {% endblock %}
