@@ -1,40 +1,98 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="midnight">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Online Voting</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}NovaVote · Advanced Online Voting{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    {% block head %}{% endblock %}
 </head>
 <body>
-  <header>
-    <h1><a href="{{ url_for('index') }}">Online Voting System</a></h1>
-    <nav>
-      {% if session.get('user_id') %}
-        <a href="{{ url_for('logout') }}">Logout</a>
-        <a href="{{ url_for('index') }}">Home</a>
-      {% else %}
-        <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('register') }}">Register</a>
-      {% endif %}
-      {% if user and user.is_admin %}
-        <a href="{{ url_for('create_election') }}">Create Election</a>
-      {% endif %}
-    </nav>
-  </header>
+    <div class="bg-grid"></div>
+    <header class="topbar glass">
+        <div class="container nav-wrap">
+            <a class="logo" href="{{ url_for('index') }}">
+                <span class="logo-mark">✦</span>
+                <span>NovaVote</span>
+            </a>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <section class="messages">
-      {% for category, message in messages %}
-        <div class="alert {{ category }}">{{ message }}</div>
-      {% endfor %}
-      </section>
-    {% endif %}
-  {% endwith %}
+            <nav class="main-nav">
+                <a href="{{ url_for('index') }}">Home</a>
+                {% if user %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('profile') }}">Profile</a>
+                {% endif %}
+                {% if user and user.is_admin %}
+                <a href="{{ url_for('admin_home') }}">Admin</a>
+                {% endif %}
+            </nav>
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+            <div class="right-nav">
+                <button id="themeToggle" class="btn btn-ghost btn-sm">Theme</button>
+                {% if user %}
+                <span class="user-chip">{{ user.name }}</span>
+                <a class="btn btn-sm" href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                <a class="btn btn-ghost btn-sm" href="{{ url_for('login') }}">Login</a>
+                <a class="btn btn-sm" href="{{ url_for('register') }}">Join Free</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="container main-shell">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <section class="flash-stack">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+                <span>{{ message }}</span>
+                <button class="flash-close" type="button" data-close-flash>×</button>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+        {% endwith %}
+
+        {% if latest_announcements %}
+        <section class="announce-bar glass">
+            <div class="announce-track">
+                {% for a in latest_announcements %}
+                <div class="announce-item">
+                    <strong>{{ a.title }}</strong>
+                    <span>{{ a.body }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer container">
+        <div>
+            <h4>NovaVote</h4>
+            <p>Highly functional, transparent, secure online voting platform.</p>
+        </div>
+        <div class="footer-stats">
+            <div><strong>{{ platform_stats.elections }}</strong><span>Elections</span></div>
+            <div><strong>{{ platform_stats.users }}</strong><span>Users</span></div>
+            <div><strong>{{ platform_stats.votes }}</strong><span>Votes Cast</span></div>
+        </div>
+    </footer>
+
+    <script>
+        window.__NOVAVOTE__ = {
+            csrfToken: "{{ session.get('csrf_token', '') }}",
+            currentUser: {{ user.id if user else 'null' }},
+            nowIso: "{{ to_iso(utcnow()) }}"
+        };
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

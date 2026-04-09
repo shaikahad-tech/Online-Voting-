@@ -1,25 +1,91 @@
 {% extends 'base.html' %}
+{% block title %}NovaVote · Welcome{% endblock %}
 {% block content %}
-<h2>Available Elections</h2>
-{% if elections %}
-  <div class="grid">
-    {% for election in elections %}
-      <article class="card">
+<section class="hero glass">
+    <div class="hero-copy">
+        <p class="eyebrow">Future-ready Governance</p>
+        <h1>Advanced Online Voting That Feels Powerful & Looks Stunning.</h1>
+        <p>Create elections, manage voter cohorts, monitor turnout in real time, and publish transparent analytics.</p>
+        <div class="hero-actions">
+            {% if user %}
+            <a class="btn" href="{{ url_for('dashboard') }}">Open Dashboard</a>
+            {% else %}
+            <a class="btn" href="{{ url_for('register') }}">Create Account</a>
+            <a class="btn btn-ghost" href="{{ url_for('login') }}">Sign In</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-panel">
+        <h3>Platform Pulse</h3>
+        <div class="pulse-grid">
+            <article><strong>{{ insights.live }}</strong><span>Live</span></article>
+            <article><strong>{{ insights.upcoming }}</strong><span>Upcoming</span></article>
+            <article><strong>{{ insights.ended }}</strong><span>Ended</span></article>
+            <article><strong>{{ platform_stats.votes }}</strong><span>Total Votes</span></article>
+        </div>
+    </div>
+</section>
+
+<section class="section-head">
+    <h2>Featured Elections</h2>
+    <a href="{{ url_for('dashboard') if user else url_for('login') }}">View all →</a>
+</section>
+
+<section class="card-grid cols-3">
+    {% for election in featured %}
+    {% set state = election_state(election) %}
+    <article class="card election-card {{ election.banner }}">
+        <div class="card-top">
+            <span class="badge {{ election_badge(state) }}">{{ state|title }}</span>
+            <span class="pill">{{ election.category }}</span>
+        </div>
         <h3>{{ election.title }}</h3>
         <p>{{ election.description }}</p>
-        {% if session.get('user_id') %}
-          {% if election.id in voted_election_ids %}
-            <a class="btn secondary" href="{{ url_for('results', election_id=election.id) }}">View Results</a>
-          {% else %}
-            <a class="btn" href="{{ url_for('election_detail', election_id=election.id) }}">Vote Now</a>
-          {% endif %}
+        <div class="meta-row">
+            <span>Starts {{ election.start_at.strftime('%b %d, %Y %H:%M UTC') }}</span>
+            <span>Ends {{ election.end_at.strftime('%b %d, %Y %H:%M UTC') }}</span>
+        </div>
+        {% if user %}
+        <a class="btn btn-sm" href="{{ url_for('election_detail', slug=election.slug) }}">Open</a>
         {% else %}
-          <a class="btn" href="{{ url_for('login') }}">Login to Vote</a>
+        <a class="btn btn-sm" href="{{ url_for('login') }}">Login to View</a>
         {% endif %}
-      </article>
+    </article>
+    {% else %}
+    <article class="card empty-state">
+        <h3>No elections yet</h3>
+        <p>Admins can create elections from the admin panel.</p>
+    </article>
     {% endfor %}
-  </div>
-{% else %}
-  <p>No elections available yet.</p>
-{% endif %}
+</section>
+
+<section class="section-head">
+    <h2>Top Voters</h2>
+</section>
+<section class="card-grid cols-2">
+    <article class="card">
+        <table class="table clean">
+            <thead>
+                <tr><th>User</th><th>Votes</th></tr>
+            </thead>
+            <tbody>
+                {% for row in leaderboard %}
+                <tr><td>{{ row.name }}</td><td>{{ row.vote_count }}</td></tr>
+                {% else %}
+                <tr><td colspan="2">No voting activity yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+    <article class="card">
+        <h3>Why teams love NovaVote</h3>
+        <ul class="bullet-list">
+            <li>Beautiful, modern UI with responsive interactions.</li>
+            <li>Election scheduling, eligibility, and private voter cohorts.</li>
+            <li>Configurable max-choice ballots and abstain support.</li>
+            <li>Admin analytics, trend lines, and JSON APIs for integration.</li>
+            <li>Audit logs for transparent governance and compliance.</li>
+        </ul>
+    </article>
+</section>
 {% endblock %}

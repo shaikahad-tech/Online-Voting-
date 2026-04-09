@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}NovaVote · Analytics{% endblock %}
+{% block content %}
+<section class="section-head">
+    <h1>Election Analytics</h1>
+</section>
+<section class="kpi-grid">
+    <article class="kpi"><strong>{{ records|length }}</strong><span>Total Elections</span></article>
+    <article class="kpi"><strong>{{ avg_turnout }}%</strong><span>Avg Turnout</span></article>
+</section>
+<section class="card">
+    <table class="table">
+        <thead><tr><th>Election</th><th>State</th><th>Category</th><th>Votes</th><th>Eligible</th><th>Turnout</th><th>Winner</th></tr></thead>
+        <tbody>
+            {% for row in records %}
+            <tr>
+                <td><a href="{{ url_for('results', slug=row.slug) }}">{{ row.title }}</a></td>
+                <td>{{ row.state }}</td>
+                <td>{{ row.category }}</td>
+                <td>{{ row.votes }}</td>
+                <td>{{ row.eligible }}</td>
+                <td>{{ row.turnout }}%</td>
+                <td>{{ row.winner }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">No analytics yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

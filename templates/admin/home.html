@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}NovaVote · Admin{% endblock %}
+{% block content %}
+<section class="section-head">
+    <h1>Admin Control Center</h1>
+    <div class="inline-actions">
+        <a class="btn btn-sm" href="{{ url_for('admin_create_election') }}">New Election</a>
+        <a class="btn btn-sm btn-ghost" href="{{ url_for('admin_announcements') }}">Announcements</a>
+        <a class="btn btn-sm btn-ghost" href="{{ url_for('admin_analytics') }}">Analytics</a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <article class="kpi"><strong>{{ status_counts.live or 0 }}</strong><span>Live</span></article>
+    <article class="kpi"><strong>{{ status_counts.upcoming or 0 }}</strong><span>Upcoming</span></article>
+    <article class="kpi"><strong>{{ status_counts.ended or 0 }}</strong><span>Ended</span></article>
+    <article class="kpi"><strong>{{ status_counts.archived or 0 }}</strong><span>Archived</span></article>
+</section>
+
+<section class="card-grid cols-2">
+    <article class="card">
+        <h3>Top Elections</h3>
+        <table class="table clean">
+            <thead><tr><th>Election</th><th>State</th><th>Votes</th><th>Turnout</th><th></th></tr></thead>
+            <tbody>
+                {% for row in top_elections %}
+                <tr>
+                    <td>{{ row.title }}</td>
+                    <td>{{ row.state }}</td>
+                    <td>{{ row.votes }}</td>
+                    <td>{{ row.turnout }}%</td>
+                    <td><a href="{{ url_for('admin_edit_election', election_id=row.id) }}">Manage</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">No elections yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <form method="post" action="{{ url_for('seed_demo_data_route') }}">
+            <button class="btn btn-sm btn-ghost" type="submit">Seed Demo Data</button>
+        </form>
+    </article>
+
+    <article class="card">
+        <h3>Recent Activity Log</h3>
+        <ul class="timeline">
+            {% for log in logs %}
+            <li>
+                <span>{{ log.time.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+                <strong>{{ log.actor }}</strong> {{ log.action }} <em>{{ log.target_type }}</em>
+            </li>
+            {% else %}
+            <li><span>No activity found.</span></li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+{% endblock %}

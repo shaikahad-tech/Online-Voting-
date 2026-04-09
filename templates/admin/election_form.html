@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}NovaVote · {% if mode=='create' %}New Election{% else %}Edit Election{% endif %}{% endblock %}
+{% block content %}
+<section class="section-head">
+    <h1>{% if mode=='create' %}Create Election{% else %}Edit Election{% endif %}</h1>
+</section>
+
+<form method="post" class="card admin-form">
+    <input type="hidden" name="action" value="save" />
+    <div class="grid-2">
+        <label>Title<input name="title" value="{{ election.title if election else '' }}" required /></label>
+        <label>Category<input name="category" value="{{ election.category if election else 'general' }}" /></label>
+        <label>Visibility
+            <select name="visibility">
+                <option value="public" {% if not election or election.visibility=='public' %}selected{% endif %}>Public</option>
+                <option value="private" {% if election and election.visibility=='private' %}selected{% endif %}>Private</option>
+            </select>
+        </label>
+        <label>Max Choices<input name="max_choices" type="number" min="1" max="5" value="{{ election.max_choices if election else 1 }}" /></label>
+        <label>Start At<input type="datetime-local" name="start_at" value="{{ election.start_at.strftime('%Y-%m-%dT%H:%M') if election else '' }}" required /></label>
+        <label>End At<input type="datetime-local" name="end_at" value="{{ election.end_at.strftime('%Y-%m-%dT%H:%M') if election else '' }}" required /></label>
+        <label>Banner<input name="banner" value="{{ election.banner if election else 'aurora' }}" /></label>
+        <label class="check"><input type="checkbox" name="allow_abstain" {% if election and election.allow_abstain %}checked{% endif %}>Allow Abstain</label>
+        <label class="check"><input type="checkbox" name="allow_live_results" {% if not election or election.allow_live_results %}checked{% endif %}>Allow Live Results</label>
+    </div>
+    <label>Description<textarea name="description" rows="5" required>{{ election.description if election else '' }}</textarea></label>
+    <label>Rules<textarea name="rules" rows="4">{{ election.rules if election else '' }}</textarea></label>
+
+    {% if mode == 'create' %}
+    <label>Candidates (one per line: Name | Slogan | Years | Manifesto)
+        <textarea name="candidates" rows="8" placeholder="Alex Roe | Build communities | 7 | Practical and collaborative leadership"></textarea>
+    </label>
+    <label>Invitees (private elections only, one email per line)
+        <textarea name="invitees" rows="5" placeholder="user@example.com"></textarea>
+    </label>
+    {% endif %}
+
+    <div class="inline-actions">
+        <button class="btn" type="submit">Save</button>
+        {% if mode=='edit' %}
+        <button class="btn btn-ghost" type="submit" name="action" value="publish">Publish</button>
+        <button class="btn btn-danger" type="submit" name="action" value="archive">Archive</button>
+        {% endif %}
+    </div>
+</form>
+
+{% if mode == 'edit' %}
+<section class="card-grid cols-2 mt-3">
+    <article class="card">
+        <h3>Candidates</h3>
+        <form method="post" action="{{ url_for('admin_add_candidate', election_id=election.id) }}" class="stack-form">
+            <input name="name" placeholder="Name" required />
+            <input name="slogan" placeholder="Slogan" />
+            <input name="experience_years" placeholder="Years" type="number" min="0" />
+            <textarea name="manifesto" rows="3" placeholder="Manifesto"></textarea>
+            <button class="btn btn-sm" type="submit">Add Candidate</button>
+        </form>
+        <ul class="timeline">
+            {% for c in candidates %}
+            <li>
+                <strong>{{ c.name }}</strong>
+                <span>{{ c.slogan }}</span>
+                <form method="post" action="{{ url_for('admin_delete_candidate', candidate_id=c.id) }}">
+                    <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                </form>
+            </li>
+            {% else %}
+            <li><span>No candidates yet.</span></li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="card">
+        <h3>Private Voters</h3>
+        <form method="post" action="{{ url_for('admin_add_voter', election_id=election.id) }}" class="stack-form">
+            <input type="email" name="email" placeholder="voter@email.com" required />
+            <button class="btn btn-sm" type="submit">Invite Voter</button>
+        </form>
+        <ul class="timeline">
+            {% for v in voters %}
+            <li><strong>{{ v.name }}</strong><span>{{ v.email }}</span></li>
+            {% else %}
+            <li><span>No voter restrictions (or none invited yet).</span></li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}NovaVote · Dashboard{% endblock %}
+{% block content %}
+<section class="section-head">
+    <h1>Voting Dashboard</h1>
+</section>
+
+<section class="kpi-grid">
+    <article class="kpi"><strong>{{ stats.total }}</strong><span>Total Elections</span></article>
+    <article class="kpi"><strong>{{ stats.live }}</strong><span>Live Now</span></article>
+    <article class="kpi"><strong>{{ stats.upcoming }}</strong><span>Upcoming</span></article>
+    <article class="kpi"><strong>{{ stats.voted }}</strong><span>You Voted</span></article>
+</section>
+
+<section class="card glass filter-bar">
+    <form method="get" class="row-form">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search elections..." />
+        <select name="status">
+            {% for s in ['all','live','upcoming','ended','archived'] %}
+            <option value="{{ s }}" {% if status==s %}selected{% endif %}>{{ s|title }}</option>
+            {% endfor %}
+        </select>
+        <select name="category">
+            <option value="all" {% if category=='all' %}selected{% endif %}>All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if category==cat %}selected{% endif %}>{{ cat|title }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-sm" type="submit">Filter</button>
+    </form>
+</section>
+
+<section class="card-grid cols-3">
+    {% for election in elections %}
+    {% set state = election_state(election) %}
+    <article class="card election-card">
+        <div class="card-top">
+            <span class="badge {{ election_badge(state) }}">{{ state|title }}</span>
+            <span class="pill">{{ election.category }}</span>
+        </div>
+        <h3>{{ election.title }}</h3>
+        <p>{{ election.description[:220] }}{% if election.description|length > 220 %}...{% endif %}</p>
+        <div class="meta-row">
+            <span>{{ election.start_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+            <span>{{ election.end_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+        </div>
+        <div class="flex-between">
+            <a class="btn btn-sm" href="{{ url_for('election_detail', slug=election.slug) }}">Open</a>
+            {% if election.id in my_votes %}
+            <span class="mini-chip success">Voted</span>
+            {% else %}
+            <span class="mini-chip">Pending</span>
+            {% endif %}
+        </div>
+    </article>
+    {% else %}
+    <article class="card empty-state">
+        <h3>No elections found</h3>
+        <p>Try adjusting search or filters.</p>
+    </article>
+    {% endfor %}
+</section>
+{% endblock %}

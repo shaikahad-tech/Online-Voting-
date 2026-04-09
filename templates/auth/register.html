@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}NovaVote · Register{% endblock %}
+{% block content %}
+<section class="auth-shell">
+    <form method="post" class="card auth-card glass">
+        <h1>Create Account</h1>
+        <p>Join NovaVote and participate in advanced online elections.</p>
+        <label>Name<input required type="text" name="name" minlength="2" /></label>
+        <label>Email<input required type="email" name="email" /></label>
+        <label>Password<input required type="password" name="password" minlength="8" /></label>
+        <label>Confirm Password<input required type="password" name="confirm_password" minlength="8" /></label>
+        <button class="btn btn-lg" type="submit">Register</button>
+        <p class="muted">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    </form>
+</section>
+{% endblock %}

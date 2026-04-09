@@ -1,20 +1,71 @@
 {% extends 'base.html' %}
+{% block title %}NovaVote · {{ election.title }}{% endblock %}
 {% block content %}
-<h2>{{ election.title }}</h2>
-<p>{{ election.description }}</p>
+<section class="election-head card glass">
+    <div>
+        <span class="badge {{ election_badge(state) }}">{{ state|title }}</span>
+        <h1>{{ election.title }}</h1>
+        <p>{{ election.description }}</p>
+    </div>
+    <aside>
+        <div class="meta-col">
+            <span><strong>Category:</strong> {{ election.category }}</span>
+            <span><strong>Visibility:</strong> {{ election.visibility }}</span>
+            <span><strong>Max Choices:</strong> {{ election.max_choices }}</span>
+            <span><strong>Schedule:</strong> {{ election.start_at.strftime('%Y-%m-%d %H:%M UTC') }} → {{ election.end_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+            <span><strong>Turnout:</strong> {{ turnout.turnout }}% ({{ turnout.votes }}/{{ turnout.eligible }})</span>
+        </div>
+    </aside>
+</section>
 
-{% if existing_vote %}
-  <p>You already voted in this election.</p>
-  <a class="btn secondary" href="{{ url_for('results', election_id=election.id) }}">View Results</a>
-{% else %}
-<form method="post" class="form-card">
-  {% for candidate in candidates %}
-    <label class="inline-option">
-      <input type="radio" name="candidate_id" value="{{ candidate.id }}" required>
-      {{ candidate.name }}
+<section class="card rules-card">
+    <h3>Election Rules</h3>
+    <p>{{ election.rules or 'Respect the process. Vote once. No coercion or vote buying.' }}</p>
+</section>
+
+<form method="post" class="card-grid cols-2 vote-form">
+    <input type="hidden" name="csrf_token" value="{{ session.get('csrf_token','') }}">
+    {% for c in candidates %}
+    <label class="card candidate-card {% if c.id in voted_candidate_ids %}selected{% endif %}">
+        <div class="candidate-top">
+            <span class="candidate-icon">{{ c.icon }}</span>
+            {% if election.max_choices > 1 %}
+            <input type="checkbox" name="candidate_ids" value="{{ c.id }}" {% if c.id in voted_candidate_ids %}checked{% endif %} {% if existing_votes %}disabled{% endif %}>
+            {% else %}
+            <input type="radio" name="candidate_ids" value="{{ c.id }}" {% if c.id in voted_candidate_ids %}checked{% endif %} {% if existing_votes %}disabled{% endif %}>
+            {% endif %}
+        </div>
+        <h4>{{ c.name }}</h4>
+        <p class="slogan">{{ c.slogan }}</p>
+        <p>{{ c.manifesto }}</p>
+        <div class="meta-row">
+            <span>{{ c.experience_years }} years experience</span>
+        </div>
     </label>
-  {% endfor %}
-  <button type="submit">Submit Vote</button>
+    {% endfor %}
+
+    {% if election.allow_abstain %}
+    <label class="card candidate-card">
+        <div class="candidate-top">
+            {% if election.max_choices > 1 %}
+            <input type="checkbox" name="candidate_ids" value="">
+            {% else %}
+            <input type="radio" name="candidate_ids" value="">
+            {% endif %}
+        </div>
+        <h4>Abstain</h4>
+        <p>Submit a ballot without choosing a candidate.</p>
+    </label>
+    {% endif %}
+
+    <div class="full-row action-row">
+        {% if existing_votes %}
+        <a class="btn" href="{{ url_for('results', slug=election.slug) }}">See Results</a>
+        {% elif state == 'live' %}
+        <button class="btn btn-lg" type="submit">Submit Secure Vote</button>
+        {% else %}
+        <a class="btn btn-ghost" href="{{ url_for('results', slug=election.slug) }}">View Results</a>
+        {% endif %}
+    </div>
 </form>
-{% endif %}
 {% endblock %}

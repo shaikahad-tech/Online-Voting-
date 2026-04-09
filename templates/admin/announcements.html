@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}NovaVote · Announcements{% endblock %}
+{% block content %}
+<section class="section-head"><h1>Announcements</h1></section>
+<section class="card-grid cols-2">
+    <form method="post" class="card stack-form">
+        <input name="title" placeholder="Announcement title" required />
+        <textarea name="body" rows="6" placeholder="Write your announcement..." required></textarea>
+        <label class="check"><input type="checkbox" name="is_published" checked />Publish now</label>
+        <button class="btn" type="submit">Post</button>
+    </form>
+    <article class="card">
+        <h3>Recent Announcements</h3>
+        <ul class="timeline">
+            {% for a in announcements %}
+            <li>
+                <span>{{ a.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+                <strong>{{ a.title }}</strong>
+                <p>{{ a.body }}</p>
+            </li>
+            {% else %}
+            <li><span>No announcements yet.</span></li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+{% endblock %}
